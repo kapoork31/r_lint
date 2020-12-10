@@ -1,4 +1,4 @@
-Package: testpackage
+Package: r_lint
 Title: A Simple Test Description File to Test Packages
 Version: 1.0.0
 Authors@R: c(person(given = "Kunal", family = "Kapoor", role = c("aut", "cre"), email = "kapoork@tcd.ie"))
