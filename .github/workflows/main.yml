@@ -3,10 +3,10 @@ on:
     branches:
       - master
 
-name: lint
+name: lint_test
 
 jobs:
-  lint:
+  lint_test:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
