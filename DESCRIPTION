@@ -1,8 +1,7 @@
 Package: testpackage
 Title: A Simple Test Description File to Test Packages
 Version: 1.0.0
-Authors@R: c(person(given = "Jim", family = "Hester", role = c("aut", "cre"), email = "james.hester@rstudio.com"))
+Authors@R: c(person(given = "Kunal", family = "Kapoor", role = c("aut", "cre"), email = "kapoork@tcd.ie"))
 Description: This is a simple package used to test the workflow files.
-Imports: xml2, curl
-Suggests: covr
+Depends: R (>= 3.1.0)
 License: GPL (>= 2)
