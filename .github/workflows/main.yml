@@ -2,9 +2,9 @@ on:
   push:
     branches:
       - master
-	  
+
 name: lint
- 
+
 jobs:
   lint:
     runs-on: ubuntu-latest
