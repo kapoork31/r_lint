@@ -35,19 +35,19 @@ clean_fitbit_data  <- readr::read_csv(dir)
 thresh_table <- "mvpa_thresh_11_9_4_5" # thresh table name
 
 test_that("count total steps in day", {
-    
+
     step_count <- StepCount(clean_fitbit_data, valCol = "value_steps")
     expect_type(step_count, "integer")
     expect_equal(step_count, sum(clean_fitbit_data$value_steps, na.rm = TRUE))
- 
+
 })
 
 
 test_that("mean steps per hour", {
-    
+
     avg_step_hours <- MeanHourlySteps(clean_fitbit_data, valCol = "value_steps")
     expect_type(avg_step_hours, "double")
-    
+
 })
 
 test_that("ActiveHoursCount, number of hours wiht > 500 steps", {
@@ -124,7 +124,7 @@ test_that("ActiveMinutes, count consecutive minutes", {
         valCol = "value_steps",
         threshold = 7
     )
-    
+
     expect_type(active_minute_steps, "double")
 
 })
@@ -172,7 +172,7 @@ test_that("mvpaCountNeighbourTimesPrev, count mvpa minutes", {
 
 
 test_that("consecutive, count mvpa minutes with consecutive minimum", {
-    
+
     active_hr <- clean_fitbit_data %>% filter(!!as.name(hr_column) > 120)
     fs_data <- clean_fitbit_data %>% select(!!as.name(fs_column), time)
     times_in <- mvpaCountNeighbourTimesPrev(active_hr,
@@ -180,10 +180,10 @@ test_that("consecutive, count mvpa minutes with consecutive minimum", {
                                             fs_column = fs_column,
                                             windowSize = 15
     )
-    
+
     mvpa_5_consec <- consecutive(times_in, 5)
     expect_type(mvpa_5_consec, "double")
-    
+
 })
 
 test_that("stepNorm,
