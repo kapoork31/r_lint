@@ -6,6 +6,8 @@ file_extension = 'scripts/fitbit_pipeline_cleaning_kunal/data/raw_fitbit_data.cs
 #dir = paste(paste(strsplit(getwd(),'/devices')[1],'scripts',sep = '/'),file_extension,sep = '/')
 rawFitbitData  <- readr::read_csv(file_extension)
 
+x = 1
+
 test_that("dropIndexes functions returns vector with given indexes removed", {
     
     fitbitData  <-data.frame(value = runif(100, min=0, max=20),value = runif(100, min=0, max=50))
