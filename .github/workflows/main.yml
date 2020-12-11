@@ -1,48 +1,55 @@
+---
+###########################
+###########################
+## Linter GitHub Actions ##
+###########################
+###########################
+name: Lint Code Base
+
+#
+# Documentation:
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions
+#
+
+#############################
+# Start the job on all push #
+#############################
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    # Remove the line above to run when pushing to master
+  pull_request:
+    branches: [main]
 
-name: lint_test
-
+###############
+# Set the Job #
+###############
 jobs:
-  lint_test:
+  build:
+    # Name the Job
+    name: Lint Code Base
+    # Set the agent to run on
     runs-on: ubuntu-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    ##################
+    # Load all steps #
+    ##################
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: |
-            sudo apt-get update
-            sudo apt-get install libcurl4-openssl-dev --fix-broken
-      - uses: r-lib/actions/setup-r@v1
-
-      - name: Query dependencies
-        run: |
-          install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
-          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
-        shell: Rscript {0}
-
-      - name: Cache R packages
-        uses: actions/cache@v2
+      ##########################
+      # Checkout the code base #
+      ##########################
+      - name: Checkout Code
+        uses: actions/checkout@v2
         with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: |
-          install.packages(c("remotes"))
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("lintr")
-        shell: Rscript {0}
-
-      - name: Install package
-        run: R CMD INSTALL .
-
-      - name: Lint
-        run: lintr::lint_package()
-        shell: Rscript {0}
+      ################################
+      # Run Linter against code base #
+      ################################
+      - name: Lint Code Base
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
