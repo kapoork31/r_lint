@@ -1,57 +1,201 @@
-source("scripts/fitbit_pipeline_cleaning_kunal/src/utils/fitbit_cleaning_utils.R")
+#############################################################
+##  This file runs tests on featurisaton utils
+##
+#############################################################
+
+###################################
+# Load libraries and source files
+########################## #########
+
+source(file.path("~",
+                 "scripts",
+                 "fitbit_pipeline_cleaning_kunal",
+                 "src",
+                 "utils",
+                 "fitbit_utils_3.R"
+)
+)
+
 library(testthat)
 library(readr)
 
-file_extension = 'scripts/fitbit_pipeline_cleaning_kunal/data/raw_fitbit_data.csv'
-#dir = paste(paste(strsplit(getwd(),'/devices')[1],'scripts',sep = '/'),file_extension,sep = '/')
-rawFitbitData  <- readr::read_csv(file_extension)
+conn <- xap.conn
 
-x = 1
+file_extension <- file.path(
+    "fitbit_pipeline_cleaning_kunal",
+    "data",
+    "clean_fitbit_data.csv")
 
-test_that("dropIndexes functions returns vector with given indexes removed", {
+
+dir <- sub("devices", "scripts", getwd())
+dir <- file.path(dir, file_extension)
+
+clean_fitbit_data  <- readr::read_csv(dir)
+
+thresh_table <- "mvpa_thresh_11_9_4_5" # thresh table name
+
+test_that("count total steps in day", {
     
-    fitbitData  <-data.frame(value = runif(100, min=0, max=20),value = runif(100, min=0, max=50))
-    removeIndexes = c(1,2,3,4,5,6,7,8,9,10)
-    dataIndexesRemoved = dropIndexes(fitbitData,removeIndexes)
-    expect_equal(nrow(fitbitData)-length(removeIndexes), nrow(dataIndexesRemoved))
+    step_count <- StepCount(clean_fitbit_data, valCol = "value_steps")
+    expect_type(step_count, "integer")
+    expect_equal(step_count, sum(clean_fitbit_data$value_steps, na.rm = TRUE))
+    
 })
 
 
-test_that("propDiff functions returns proportinal difference between 2 values", {
+test_that("mean steps per hour", {
     
-    propDifference = propDiff(6,4)
-    expect_equal(propDifference, 50)
+    avg_step_hours <- MeanHourlySteps(clean_fitbit_data, valCol = "value_steps")
+    expect_type(avg_step_hours, "double")
+    
+})
+
+test_that("ActiveHoursCount, number of hours wiht > 500 steps", {
+    
+    active_step_hours <- ActiveHoursCount(clean_fitbit_data,
+                                          valCol = "value_steps")
+    expect_type(active_step_hours, "integer")
+    expect_equal(active_step_hours, 7)
+    
+})
+
+test_that("LowActiveHoursCount, number of hours witt <= 500 steps", {
+    
+    low_active_step_hours <- LowActiveHoursCount(
+        clean_fitbit_data,
+        valCol = "value_steps"
+    )
+    
+    expect_type(low_active_step_hours, "integer")
+    expect_equal(low_active_step_hours, 13)
+    
 })
 
 
-test_that("removeRepPointsdata functions that removes repeating values", {
+test_that("GetActiveWindow, start and end of active window", {
     
-    cleanedData = removeRepPointsdata(rawFitbitData)
-    expect_equal(colnames(rawFitbitData), colnames(cleanedData))
-    expect_lte(nrow(cleanedData),nrow(rawFitbitData))
+    active_window <- GetActiveWindow(clean_fitbit_data, valCol = "value_steps")
+    expect_length(active_window, 2)
+    expect_setequal(colnames(active_window), c("startWindow", "endWindow"))
+    
 })
 
 
-test_that("removeRandomPoints functions that removes random values based on time", {
+test_that("RestingHrProxy, calculate rhr", {
     
-    cleanedData = removeRandomPoints(rawFitbitData)
-    expect_equal(colnames(rawFitbitData), colnames(cleanedData))
-    expect_lte(nrow(cleanedData),nrow(rawFitbitData))
+    rhr <- RestingHrProxy(clean_fitbit_data, valCol = "value_hr")
+    expect_type(rhr, "double")
+    
 })
 
 
-test_that("remove70Leniant1 functions that removes values of 70 that are errors based on values around them and time", {
+test_that("HourlyInterval, calculate rhr", {
     
-    cleanedData = remove70Leniant1(rawFitbitData)
-    expect_equal(colnames(rawFitbitData), colnames(cleanedData))
-    expect_lte(nrow(cleanedData),nrow(rawFitbitData))
+    intervals <- HourlyInterval(clean_fitbit_data, valCol = "value_hr")
+    expect_length(intervals, 3)
+    expect_setequal(colnames(intervals),
+                    c("maxHourly",
+                      "minHourly",
+                      "medianHourly")
+    )
+    
 })
 
 
-test_that("removeOutlierPoints functions that removes values based on being outlier value vs neighbourhood of values", {
+test_that("MinuteWearCount, calculate rhr", {
     
-    cleanedData = removeOutlierPoints(rawFitbitData)
-    expect_equal(colnames(rawFitbitData), colnames(cleanedData))
-    expect_lte(nrow(cleanedData),nrow(rawFitbitData))
+    wear_time <- MinuteWearCount(clean_fitbit_data)
+    expect_lte(wear_time, 1440)
+    
 })
 
+test_that("CountMinutes, count consecutive minutes", {
+    
+    is_high <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    consec <- CountMinutes(is_high, 5)
+    expect_equal(consec, length(is_high))
+    
+})
+
+test_that("ActiveMinutes, count consecutive minutes", {
+    
+    active_minute_steps <- ActiveMinutes(
+        clean_fitbit_data,
+        valCol = "value_steps",
+        threshold = 7
+    )
+    
+    expect_type(active_minute_steps, "double")
+    
+})
+
+test_that("CoefficientOfVariation, calc cov of numerical vector", {
+    
+    steps <- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    numerical_values <- data.frame(value_steps = steps)
+    cov <- CoefficientOfVariation(numerical_values, valCol = "value_steps")
+    expect_equal(cov, 0)
+    
+})
+
+test_that("activeMinutesRegThresh, thresh data per person per date", {
+    
+    thresh_data <- activeMinutesRegThresh(
+        clean_fitbit_data$userid[1],
+        as.Date(clean_fitbit_data$time[1]),
+        thresh_table,
+        conn)
+    
+    expect_type(thresh_data, "list")
+})
+
+test_that("switchTh, count number of times hr values goes above a threshold", {
+    
+    numerical_vector <- c(1, 121, 1, 121, 1, 121)
+    switch_count <- switchTh(numerical_vector, 120)
+    expect_equal(switch_count, 3)
+})
+
+
+test_that("mvpaCountNeighbourTimesPrev, count mvpa minutes", {
+    
+    active_hr <- clean_fitbit_data %>% filter(!!as.name(hr_column) > 120)
+    fs_data <- clean_fitbit_data %>% select(!!as.name(fs_column), time)
+    times_in <- mvpaCountNeighbourTimesPrev(active_hr,
+                                            fs_data,
+                                            fs_column = fs_column,
+                                            windowSize = 15
+    )
+    
+    expect_type(times_in[1], "double")
+})
+
+
+test_that("consecutive, count mvpa minutes with consecutive minimum", {
+    
+    active_hr <- clean_fitbit_data %>% filter(!!as.name(hr_column) > 120)
+    fs_data <- clean_fitbit_data %>% select(!!as.name(fs_column), time)
+    times_in <- mvpaCountNeighbourTimesPrev(active_hr,
+                                            fs_data,
+                                            fs_column = fs_column,
+                                            windowSize = 15
+    )
+    
+    mvpa_5_consec <- consecutive(times_in, 5)
+    expect_type(mvpa_5_consec, "double")
+    
+})
+
+test_that("stepNorm,
+    count avg steps in period where hr is in a certain group", {
+        
+        active_hr <- clean_fitbit_data %>% filter(!!as.name(hr_column) > 120)
+        fs_data <- clean_fitbit_data %>% select(!!as.name(fs_column), time)
+        times_in <- mvpaCountNeighbourTimesPrev(active_hr,
+                                                fs_data,
+                                                fs_column = fs_column,
+                                                windowSize = 15
+        )
+        step_norm_mvpa <- stepNorm(times_in, fs_data)
+        expect_type(step_norm_mvpa, "double")
+    })
