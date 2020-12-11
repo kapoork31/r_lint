@@ -1,8 +1,8 @@
-source("scripts/fitbit_pipeline_cleaning_kunal/src/utils/fitbit_cleaning_utils.R")
+source("R/scripts/fitbit_pipeline_cleaning_kunal/src/utils/fitbit_cleaning_utils.R")
 library(testthat)
 library(readr)
 
-file_extension = 'scripts/fitbit_pipeline_cleaning_kunal/data/raw_fitbit_data.csv'
+file_extension = 'R/scripts/fitbit_pipeline_cleaning_kunal/data/raw_fitbit_data.csv'
 #dir = paste(paste(strsplit(getwd(),'/devices')[1],'scripts',sep = '/'),file_extension,sep = '/')
 rawFitbitData  <- readr::read_csv(file_extension)
 
