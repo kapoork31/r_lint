@@ -17,6 +17,10 @@
 # Output files from R CMD check
 /*.Rcheck/
 
+EDA/
+legacy/
+data/
+
 # RStudio files
 .Rproj.user/
 
