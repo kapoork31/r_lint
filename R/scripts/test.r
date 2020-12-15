@@ -133,7 +133,7 @@ detrend_signal <- function(pressures) {
 
   # The most important parameter to tune is the
   #   cutoff frequency of the High Pass Filter:
-  fc <- 0.005  
+  fc <- 0.005
   # fc : cut-off frequency (cycles/sample) = 1/200. 200 points = 20 seconds.
   # Baseline drift is in the order of 20 seconds
 
@@ -148,15 +148,14 @@ detrend_signal <- function(pressures) {
   # Low values if noise is low. High value will apply significant de-noising.
   # We want to apply very light de-noising, as we want detrended values to be
   # similar to original values
-  lam0 <- 0.5 * amp 
+  lam0 <- 0.5 * amp
   # lambda values are manually tuned. Inversely proportional to the sparsity
   # of the signal and the signal derivative
   lam1 <- 5 * amp
   lam2 <- 4 * amp
 
   result <- beads(pressures, d, fc, r, lam0, lam1, lam2)
-  pressure_detrend <- result$x@x 
+  pressure_detrend <- result$x@x
   # x is the object containing the pressure with baseline removed
   pressure_detrend
 }
-
