@@ -203,8 +203,6 @@ h <- function(x, a, b) {
   b %*% solve(a, x)
 }
 
-
-
 beads <- function(y, d, fc, r, lam0, lam1, lam2) {
   # Baseline estimation and denoising using sparsity (BEADS)
   #
@@ -221,13 +219,13 @@ beads <- function(y, d, fc, r, lam0, lam1, lam2) {
   #   cost: Cost function history
 
   # The following parameter may be altered.
-  nit <- 30       
+  nit <- 30 
   # nit: Number of iterations
-  pen <- "L1_v2"  
+  pen <- "L1_v2"
   # pen : penalty function for sparse derivative ('L1_v1' or 'L1_v2')
-  eps0 <- 1e-6    
+  eps0 <- 1e-6
   # cost smoothing parameter for x (small positive value)
-  eps1 <- 1e-6    
+  eps1 <- 1e-6
   # cost smoothing parameter for derivatives (small positive value)
 
   switch(pen,
