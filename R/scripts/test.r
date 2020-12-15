@@ -45,3 +45,41 @@ detrend_signal <- function(pressures) {
   pressureDetrend <- result$x@x # x is the object containing the pressure with baseline removed
   pressureDetrend
 }
+
+
+#####################################################
+# Code that implements the BEADS algorithm to remove baseline drift
+# Original algorithm by Laurent Duval et al:
+# http://www.laurent-duval.eu/siva-beads-baseline-background-removal-filtering-sparsity.html
+# R implementation by Aurélie Pirayre
+
+# Reference:
+# Chromatogram baseline estimation and denoising using sparsity (BEADS)
+# Xiaoran Ning, Ivan W. Selesnick, Laurent Duval
+# Chemometrics and Intelligent Laboratory Systems (2014)
+# > DOI: 10.1016/j.chemolab.2014.09.014
+# Available online 30 September 2014
+#####################################################
+
+
+## Handle function ##
+PhiV1 <- function(x, EPS1) {
+  sqrt(abs(x)^2 + EPS1)
+}
+WFunV1 <- function(x, EPS1) {
+  1 / (sqrt(abs(x)^2 + EPS1))
+}
+PhiV2 <- function(x, EPS1) {
+  abs(x) - EPS1 * log(abs(x) + EPS1)
+}
+WFunV2 <- function(x, EPS1) {
+  1 / (abs(x) + EPS1)
+}
+Theta <- function(x, EPS0, r) {
+  sum(x[which(x > EPS0)]) - (r * sum(x[which(x < -EPS0)])) +
+    sum((1 + r) / (4 * EPS0) * x[which(abs(x) <= EPS0)]^2 +
+          (1 - r) / 2 * x[which(abs(x) <= EPS0)] + EPS0 * (1 + r) / 4)
+}
+H <- function(x, A, B) {
+  B %*% solve(A, x)
+}
