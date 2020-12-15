@@ -1,23 +1,25 @@
-####################################################################################################
+##################################################
 # act_cleaning_utils.R
 #
-# This file takes raw ACT data and "cleans" it by: (1) validating the schema, (2) renaming columns,
+# This file takes raw ACT data and "cleans" it by:
+#   (1) validating the schema, (2) renaming columns,
 #    (3) dropping NA values, and (4) detrending the signal.
 #
 # Entrypoint Function: CleanRawACTData()
 #
-# ------------------------------------------------------------------------------------------------
+# -----------------------------------------------
 #
 # Functions in this file:
-# * CleanACTData: update column names, drop NAs from data, detrend pressure measurements
-# * DetrendSignal: Drift in the ACT pressure measurements can be corrected using the BEADS algorithm
+# * CleanACTData: update column names, drop NAs from data,
+#     detrend pressure measurements
+# * DetrendSignal: Drift in the ACT pressure measurements can be 
+#     corrected using the BEADS algorithm
 # * Beads, etc.:
-#      http://www.laurent-duval.eu/siva-beads-baseline-background-removal-filtering-sparsity.html
 #
-#      * NB: some functions have been renamed to conform to our linting standards, but are
-#            unchanged functionality-wise
+# NB: some functions have been renamed to conform to our linting standards, but are
+#     unchanged functionality-wise
 #
-####################################################################################################
+###################################################
 
 if (!require("functional")) install.packages("functional")
 if (!require("Matrix")) install.packages("Matrix")
