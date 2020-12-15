@@ -1,7 +1,6 @@
 #####################################################
 # Code that implements the BEADS algorithm to remove baseline drift
 # Original algorithm by Laurent Duval et al:
-# http://www.laurent-duval.eu/siva-beads-baseline-background-removal-filtering-sparsity.html
 # R implementation by Aurélie Pirayre
 
 # Reference:
