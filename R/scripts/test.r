@@ -202,3 +202,104 @@ h <- function(x, a, b) {
 
   b %*% solve(a, x)
 }
+
+
+
+beads <- function(y, d, fc, r, lam0, lam1, lam2) {
+  # Baseline estimation and denoising using sparsity (BEADS)
+  #
+  # INPUT
+  #   y: Noisy observation
+  #   d: Filter order (d = 1 or 2)
+  #   fc: Filter cut-off frequency (cycles/sample) (0 < fc < 0.5)
+  #   r: Asymmetry ratio
+  #   lam0, lam1, lam2: Regularization parameters
+  #
+  # OUTPUT
+  #   x: Estimated sparse-derivative signal
+  #   f: Estimated baseline
+  #   cost: Cost function history
+
+  # The following parameter may be altered.
+  nit <- 30       
+  # nit: Number of iterations
+  pen <- "L1_v2"  
+  # pen : penalty function for sparse derivative ('L1_v1' or 'L1_v2')
+  eps0 <- 1e-6    
+  # cost smoothing parameter for x (small positive value)
+  eps1 <- 1e-6    
+  # cost smoothing parameter for derivatives (small positive value)
+
+  switch(pen,
+         l1_v1 = {
+           phi <- Curry(phi_v1, eps1 = eps1)
+           wfun <- Curry(w_fun_v1, eps1 = eps1)
+         },
+         l1_v2 = {
+           phi <- Curry(phi_v2, eps1 = eps1)
+           wfun <- Curry(w_fun_v2, eps1 = eps1)
+         },
+         {
+           cat("penalty must be L1_v1, L1_v2")
+           x <- c()
+           cost <- c()
+           f <- c()
+           return()
+         })
+
+  y <- as.vector(y)
+  x <- y
+  cost <- matrix(0, nrow = 1, ncol = nit)
+
+  len_y <- length(y)
+  ba_filt_res <- BAfilt(d, fc, len_y)
+  a <- ba_filt_res$A
+  cap_b <- ba_filt_res$B
+
+  e <- matrix(1, nrow = len_y - 1, ncol = 1)
+  diag_d1 <- vector("list", 2)
+  diag_d1[[1]] <- -e
+  diag_d1[[2]] <- e
+
+  diag_d2 <- vector("list", 3)
+  diag_d2[[1]] <- e
+  diag_d2[[2]] <- -2 * e
+  diag_d2[[3]] <- e
+
+  d1 <- bandSparse(len_y - 1, len_y, k = c(0, 1), diagonals = diag_d1)
+  d2 <- bandSparse(len_y - 2, len_y, k = c(0, 1, 2), diagonals = diag_d2)
+  d_bind <- rbind(d1, d2)
+
+  btb <- t(cap_b) %*% cap_b
+
+  w <- c(lam1 * matrix(1, nrow = len_y - 1, ncol = 1),
+         lam2 * matrix(1, nrow = len_y - 2, ncol = 1))
+
+  b <- (1 - r) / 2 * matrix(1, nrow = len_y, ncol = 1)
+  d <- btb %*% solve(a, y) - lam0 * t(a) %*% b
+
+  gamma <- matrix(1, nrow = len_y, ncol = 1)
+
+  for (i in 1:nit) {
+
+    diag <- vector("list", 1)
+    diag[[1]] <- w * wfun(d_bind %*% x)
+    lambda <- bandSparse((2 * len_y) - 3, k = 0, diagonals = diag)
+    k <- which(abs(x) > eps0)
+    gamma[!k] <- ((1 + r) / 4) / abs(eps0)
+    gamma[k] <- ((1 + r) / 4) / abs(x[k])
+    diag_g <- vector("list", 1)
+    diag_g[[1]] <- gamma
+    gamma <- bandSparse(len_y, k = 0, diagonals = diag_g)
+
+    m <- (2 * lam0 * gamma) + (t(d_bind) %*% lambda %*% d_bind)
+    x <- a %*% (solve(btb + t(a) %*% M %*% a, d))
+
+    cost[i] <- 0.5 * sum(abs(h(y - x, a, cap_b))^2) + lam0 * theta(x, eps0, r) +
+      lam1 * sum(phi(diff(x))) + lam2 * sum(phi(diff(x, differences = 2)))
+  }
+
+  f <- y - x - h(y - x, a, cap_b)
+
+  list(x = x, f = f, cost = cost)
+}
