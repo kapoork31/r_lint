@@ -16,7 +16,8 @@
 #     corrected using the BEADS algorithm
 # * Beads, etc.:
 #
-# NB: some functions have been renamed to conform to our linting standards, but are
+# NB: some functions have been
+#   renamed to conform to our linting standards, but are
 #     unchanged functionality-wise
 #
 ###################################################
@@ -54,21 +55,25 @@ source(
 
 CleanRawACTData <- function(raw_act_data) {
   # ==== ENTRYPOINT FUNCTION ====
-  # When provided raw ACT data, this function changes column names to be standardized format, drops
-  #   NAs, makes the calls to detrend the recorded signal for expired breaths (on a session level).
+  # When provided raw ACT data, this function changes
+  #   column names to be standardized format, drops
+  #   NAs, makes the calls to detrend the recorded
+  #   signal for expired breaths (on a session level).
   #
   # Args:
   #   raw_act_data: Tibble of ACT data (see RawACTSchema)
   #
   # Returns:
   #   cleaned ACT data
-  #     patientId <chr> | sessionId <chr> | time <dttm> | pressureDetrend <dbl>
-  
+  #     patientId <chr> | sessionId <chr> |
+  #     time <dttm> | pressureDetrend <dbl>
+
   ValidateDataSchema(raw_act_data, RawACTSchema)
-  # Need to modify digits for seconds in order for duplication to work
+  # Need to modify digits for seconds 
+  #   in order for duplication to work
   curr_digits <- getOption("digits.secs")
   options(digits.secs = 3)
-  
+
   raw_act_data <- raw_act_data %>%
     rename(
       "sessionId" = "id",
@@ -89,11 +94,12 @@ CleanRawACTData <- function(raw_act_data) {
     mutate(time = fix_deduplicated_time(time)) %>%
     mutate(pressureDetrend = DetrendSignal(pressureValues)) %>%
     filter(pressureDetrend >= -10 & pressureDetrend <= 120) %>%
-    select(patientId, sessionId, time, pressureDetrend, -duplicate, -pressureValues) %>%
+    select(patientId, sessionId, time,
+           pressureDetrend, -duplicate, -pressureValues) %>%
     ungroup()
-  
+
   # Reset options
   #options(digits.secs = currDigits)
-  
+
   raw_act_data
 }
