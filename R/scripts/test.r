@@ -122,7 +122,7 @@ detrend_signal <- function(pressures) {
     return(pressures)
   }
 
-  index <- 1:length(pressures)
+  index <- seq_len(length(pressures))
 
   # Set various BEADS constants:
   # You can find the details of these parameters
@@ -158,4 +158,47 @@ detrend_signal <- function(pressures) {
   pressure_detrend <- result$x@x
   # x is the object containing the pressure with baseline removed
   pressure_detrend
+}
+
+
+# Reference:
+# Chromatogram baseline estimation and denoising using sparsity (BEADS)
+# Xiaoran Ning, Ivan W. Selesnick, Laurent Duval
+# Chemometrics and Intelligent Laboratory Systems (2014)
+# > DOI: 10.1016/j.chemolab.2014.09.014
+# Available online 30 September 2014
+#####################################################
+
+
+## Handle function ##
+phi_v1 <- function(x, eps1) {
+
+  sqrt(abs(x)^2 + eps1)
+}
+
+w_fun_v1 <- function(x, eps1) {
+
+  1 / (sqrt(abs(x)^2 + eps1))
+}
+
+phi_v1 <- function(x, eps1) {
+
+  abs(x) - eps1 * log(abs(x) + eps1)
+}
+
+w_fun_v2 <- function(x, eps1) {
+
+  1 / (abs(x) + eps1)
+}
+
+theta <- function(x, eps0, r) {
+
+  sum(x[which(x > eps0)]) - (r * sum(x[which(x < -eps0)])) +
+    sum((1 + r) / (4 * eps0) * x[which(abs(x) <= eps0)]^2 +
+          (1 - r) / 2 * x[which(abs(x) <= eps0)] + eps0 * (1 + r) / 4)
+}
+
+h <- function(x, a, b) {
+
+  b %*% solve(a, x)
 }
