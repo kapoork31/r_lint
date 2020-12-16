@@ -219,8 +219,8 @@ beads <- function(y, d, fc, r, lam0, lam1, lam2) {
   # The following parameter may be altered.
   nit <- 30
   # nit: Number of iterations
-  pen <- "L1_v2"
-  # pen : penalty function for sparse derivative ('L1_v1' or 'L1_v2')
+  pen <- "l1_v2"
+  # pen : penalty function for sparse derivative ('l1_v1' or 'l1_v2')
   eps0 <- 1e-6
   # cost smoothing parameter for x (small positive value)
   eps1 <- 1e-6
@@ -237,9 +237,9 @@ beads <- function(y, d, fc, r, lam0, lam1, lam2) {
            phi <- Curry(phi_v2, eps1 = eps1)
            wfun <- Curry(w_fun_v2, eps1 = eps1)
          },
-         {
+         ret = {
 
-           cat("penalty must be L1_v1, L1_v2")
+           cat("penalty must be l1_v1, l1_v2")
            x <- c()
            cost <- c()
            f <- c()
