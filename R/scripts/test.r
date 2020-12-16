@@ -114,7 +114,7 @@ detrend_signal <- function(pressures) {
   #   the BEADS algorithm, so here we first check that
   # input signal has a valid size,
   #   to avoid getting a cryptic error from BEADS down the line.
-  
+
   # If there are too few points to detrend,
   #   pass back the original pressure values, unmodified:
   if (length(pressures) < 3) {
@@ -192,7 +192,7 @@ w_fun_v2 <- function(x, eps1) {
 theta <- function(x, eps0, r) {
 
   sum(x[which(x > eps0)]) - (r * sum(x[which(x < -eps0)])) +
-    sum( (1 + r) / (4 * eps0) * x[which(abs(x) <= eps0)] ^ 2 +
+    sum((1 + r) / (4 * eps0) * x[which(abs(x) <= eps0)] ^ 2 +
            (1 - r) / 2 * x[which(abs(x) <= eps0)] + eps0 * (1 + r) / 4)
 }
 
@@ -283,10 +283,10 @@ beads <- function(y, d, fc, r, lam0, lam1, lam2) {
 
     diag <- vector("list", 1)
     diag[[1]] <- w * wfun(d_bind %*% x)
-    lambda <- bandSparse( (2 * len_y) - 3, k = 0, diagonals = diag)
+    lambda <- bandSparse((2 * len_y) - 3, k = 0, diagonals = diag)
     k <- which(abs(x) > eps0)
-    gamma[!k] <- ( (1 + r) / 4) / abs(eps0)
-    gamma[k] <- ( (1 + r) / 4) / abs(x[k])
+    gamma[!k] <- ((1 + r) / 4) / abs(eps0)
+    gamma[k] <- ((1 + r) / 4) / abs(x[k])
     diag_g <- vector("list", 1)
     diag_g[[1]] <- gamma
     gamma <- bandSparse(len_y, k = 0, diagonals = diag_g)
@@ -325,7 +325,7 @@ ba_filt <- function(d, fc, n) {
   b <- convolve(b1, rev(c(-1, 1)), type = "open")
 
   omc <- 2 * pi * fc
-  t <- ( (1 - cos(omc)) / (1 + cos(omc))) ^ d
+  t <- ((1 - cos(omc)) / (1 + cos(omc))) ^ d
 
   a <- 1
   for (i in 1:d) {
