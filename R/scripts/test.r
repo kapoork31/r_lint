@@ -230,14 +230,17 @@ beads <- function(y, d, fc, r, lam0, lam1, lam2) {
 
   switch(pen,
          l1_v1 = {
+
            phi <- Curry(phi_v1, eps1 = eps1)
            wfun <- Curry(w_fun_v1, eps1 = eps1)
          },
          l1_v2 = {
+
            phi <- Curry(phi_v2, eps1 = eps1)
            wfun <- Curry(w_fun_v2, eps1 = eps1)
          },
          {
+
            cat("penalty must be L1_v1, L1_v2")
            x <- c()
            cost <- c()
@@ -250,7 +253,7 @@ beads <- function(y, d, fc, r, lam0, lam1, lam2) {
   cost <- matrix(0, nrow = 1, ncol = nit)
 
   len_y <- length(y)
-  ba_filt_res <- BAfilt(d, fc, len_y)
+  ba_filt_res <- ba_filt(d, fc, len_y)
   a <- ba_filt_res$A
   cap_b <- ba_filt_res$B
 
@@ -300,4 +303,52 @@ beads <- function(y, d, fc, r, lam0, lam1, lam2) {
   f <- y - x - h(y - x, a, cap_b)
 
   list(x = x, f = f, cost = cost)
+}
+
+
+
+ba_filt <- function(d, fc, n) {
+  # [A, B] = BAfilt(d, fc, N)
+  # Banded matrices for zero-phase high-pass filter.
+  # The matrices are 'sparse' data type in MATLAB.
+  # INPUT
+  #   d  : degree of filter is 2d (use d = 1 or 2)
+  #   fc : cut-off frequency (normalized frequency, 0 < fc < 0.5)
+  #   N  : length of signal
+  
+  b1 <- c(1, -1)
+  if (d > 1) {
+
+    for (i in 1:(d - 1)) {
+
+      b1 <- convolve(b1, rev(c(-1, 2, -1)), type = "open")
+    }
+  }
+
+  b <- convolve(b1, rev(c(-1, 1)), type = "open")
+
+  omc <- 2 * pi * fc
+  t <- ((1 - cos(omc)) / (1 + cos(omc)))^d
+
+  a <- 1
+  for (i in 1:d) {
+
+    a <- convolve(a, rev(c(1, 2, 1)), type = "open")
+  }
+
+  a <- b + (t * a)
+  nb_diag <- length(0:d)
+  diag_a <- vector("list", nb_diag)
+  diag_b <- vector("list", nb_diag)
+
+  for (i in 0:d) {
+
+    diag_a[[i + 1]] <- a[d - i + 1] * matrix(1, nrow = 1, ncol = (n - i))
+    diag_b[[i + 1]] <- b[d - i + 1] * matrix(1, nrow = 1, ncol = (n - i))
+  }
+
+  cap_a <- bandSparse(n, k = c(0:d), diagonals = diag_a, symm = TRUE)
+  cap_b <- bandSparse(n, k = c(0:d), diagonals = diag_b, symm = TRUE)
+
+  list(cap_a = cap_a, cap_b = cap_b)
 }
